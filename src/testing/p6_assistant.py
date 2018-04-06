@@ -34,7 +34,7 @@ for line in lines:
 
 def track_train(line, stop):
     bus_url = 'http://www.ctabustracker.com/bustime/api/v1/getpredictions'
-    bus_key = '3zENYYs55DNCGrDJEtNasqbyB'
+    bus_key = '0abd19c3589048e5bf85500d7c1abd8f'
     result = requests.get(bus_url, params={'key':bus_key,'rt':route,'stpid':stop})
     xml =xmltodict.parse(result.text)
     print (xml)
