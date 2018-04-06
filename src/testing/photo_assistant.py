@@ -70,6 +70,17 @@ def say_ip():
     aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
 
 
+def take_and_upload_photo():
+    print('taking a picture and uploading it')
+    with picamera.PiCamera() as camera:
+        camera.resolution = (1024, 768)
+        camera.start_preview()
+        time.sleep(2)
+        camera.capture('photo.jpg')
+
+    upload_file('photo.jpg')
+
+
 def take_and_send_picture():
     print('taking a picture and emailing it')
     # aiy.audio.say('Well then smile please')
@@ -163,6 +174,9 @@ def process_event(assistant, event):
         elif "take my picture" in text or "click my picture" in text or "take my photo" in text:
             assistant.stop_conversation()
             take_and_send_picture()
+        elif "upload photo" in text:
+            assistant.stop_conversation()
+            take_and_upload_photo()
         elif "buckets" in text:
             assistant.stop_conversation()
             list_buckets()
