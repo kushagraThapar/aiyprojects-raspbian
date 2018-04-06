@@ -33,7 +33,7 @@ for line in lines:
     stops[arr[0]] = arr[1]
 
 def track_train(line, stop):
-    bus_url = 'http://www.ctabustracker.com/bustime/api/v1/getpredictions'
+    bus_url = 'http://lapi.transitchicago.com/api/1.0/ttarrivals.aspx'
     bus_key = '0abd19c3589048e5bf85500d7c1abd8f'
     result = requests.get(bus_url, params={'key':bus_key,'rt':route,'stpid':stop})
     xml =xmltodict.parse(result.text)
