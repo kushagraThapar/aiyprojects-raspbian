@@ -71,6 +71,7 @@ def say_ip():
 def take_and_send_picture(phone_number):
     # phone_number = re.sub('[^0-9]', '', phone_number)
     print('taking a picture and emailing it')
+    aiy.audio.say('Well then smile please')
     with picamera.PiCamera() as camera:
         camera.resolution = (1024, 768)
         camera.start_preview()
@@ -116,11 +117,10 @@ def take_and_send_picture(phone_number):
                     # success = True
                 except:
                     pass
-        s.send_message(msg)
-        s.quit()
+        aiy.audio.say('Check your mail dude')
     except RuntimeError as error:
-        print('Error : ', error)
         aiy.audio.say('Oops, I am not able to send an email right now')
+        print('Error : ', error)
     print('DONE')
 
 
