@@ -79,6 +79,13 @@ def take_and_upload_photo():
         camera.capture('photo.jpg')
 
     upload_file('photo.jpg')
+    print("Indexing this new face now")
+    f_time = datetime.datetime.now().strftime('%a %d %b @ %H %M')
+    image_id = "photo@" + f_time + ".jpg"
+    index_faces(image_id)
+    results = search_faces_by_image()
+    print("Results are")
+    print(results)
 
 
 def take_and_send_picture():
@@ -141,6 +148,37 @@ def upload_file(file_path):
     s3 = boto3.client('s3')
     bucket_name = 'techday-bucket'
     s3.upload_file(file_path, bucket_name, file_path)
+
+
+def index_faces(image_id, attributes=(), region="us-east-2"):
+    rekognition = boto3.client("rekognition", region)
+    response = rekognition.index_faces(
+        Image={
+            "S3Object": {
+                "Bucket": "techday-bucket",
+                "Name": "photo.jpg",
+            }
+        },
+        CollectionId="first-collection",
+        ExternalImageId=image_id,
+        DetectionAttributes=attributes,
+    )
+    return response['FaceRecords']
+
+
+def search_faces_by_image(threshold=80, region="eu-west-1"):
+    rekognition = boto3.client("rekognition", region)
+    response = rekognition.search_faces_by_image(
+        Image={
+            "S3Object": {
+                "Bucket": "techday-bucket",
+                "Name": "photo.jpg",
+            }
+        },
+        CollectionId="first-collection",
+        FaceMatchThreshold=threshold,
+    )
+    return response['FaceMatches']
 
 
 def process_event(assistant, event):
