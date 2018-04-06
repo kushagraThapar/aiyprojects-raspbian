@@ -101,15 +101,13 @@ def take_and_send_picture(phone_number):
         s.ehlo_or_helo_if_needed()
         s.login('raspberrypeak6@gmail.com', 'techdaypeak6')
         s.send_message(msg)
-        s.sendmail(msg['From'], msg['To'], "", msg)
+        # s.sendmail(msg['From'], msg['To'], "", msg)
 
-        carriers = ['messaging.sprintpcs.com', 'tmomail.net', 'txt.att.net', 'msg.fi.google.com']
-        success = False
         print('phone_number:' + phone_number)
         if phone_number is not None and len(phone_number) > 0:
+            carriers = ['messaging.sprintpcs.com', 'tmomail.net', 'txt.att.net', 'msg.fi.google.com']
+            
             for carrier in carriers:
-                if success:
-                    break
                 try:
                     msg['To'] = phone_number + '@' + carrier
                     # s.send_message(msg)
@@ -117,6 +115,7 @@ def take_and_send_picture(phone_number):
                     # success = True
                 except:
                     pass
+
         aiy.audio.say('Check your mail dude')
     except RuntimeError as error:
         aiy.audio.say('Oops, I am not able to send an email right now')
