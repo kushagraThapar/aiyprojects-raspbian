@@ -47,13 +47,16 @@ def power_off_pi():
     aiy.audio.say('Good bye!')
     subprocess.call('sudo shutdown now', shell=True)
 
+
 def pause_radio():
     print("pausing radio")
-    subprocess.call("mpc stop")
+    subprocess.call("mpc stop", shell=True)
+
 
 def play_radio():
     print("playing radio")
     subprocess.call("mpc clear; mpc add http://50.31.180.202:80/;mpc play", shell=True)
+
 
 def reboot_pi():
     aiy.audio.say('See you in a bit!')
@@ -64,9 +67,12 @@ def say_ip():
     ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
     aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
 
+
 import re
+
+
 def take_and_send_picture(phonenumber):
-    phonenumber = re.sub('[^0-9]','',phonenumber)
+    phonenumber = re.sub('[^0-9]', '', phonenumber)
     print('taking a picture and emailing it')
     with picamera.PiCamera() as camera:
         camera.resolution = (1024, 768)
@@ -74,51 +80,52 @@ def take_and_send_picture(phonenumber):
         time.sleep(2)
         camera.capture('photo.jpg')
     f_time = datetime.datetime.now().strftime('%a %d %b @ %H %M')
-    
+
     toaddr = 'htiwari@peak6.com'
     me = 'picamera@peak6.net'
     subject = 'Photo ' + f_time
-    
+
     msg = MIMEMultipart()
     msg['Subject'] = subject
     msg['From'] = me
     msg['To'] = toaddr
     msg.preamble = "Photo @ " + f_time
-    
+
     fp = open('photo.jpg', 'rb')
     img = MIMEImage(fp.read())
     fp.close()
     msg.attach(img)
-    
+
     try:
         s = smtplib.SMTP('smtp.gmail.com:587')
         s.ehlo_or_helo_if_needed()
         s.starttls()
         s.ehlo_or_helo_if_needed()
-        s.login('raspberrypeak6@gmail.com','techdaypeak6')
-        #s.send_message(msg)
-        #s.sendmail(msg['From'],msg['To'],"",msg)
-        
-        carriers = ['messaging.sprintpcs.com','tmomail.net','txt.att.net','msg.fi.google.com']
+        s.login('raspberrypeak6@gmail.com', 'techdaypeak6')
+        # s.send_message(msg)
+        # s.sendmail(msg['From'],msg['To'],"",msg)
+
+        carriers = ['messaging.sprintpcs.com', 'tmomail.net', 'txt.att.net', 'msg.fi.google.com']
         success = False
-        print('phonenumber:'+phonenumber)
+        print('phonenumber:' + phonenumber)
         if len(phonenumber) > 0:
             for carrier in carriers:
                 if success:
                     break
                 try:
                     msg['To'] = phonenumber + '@' + carrier
-                    #s.send_message(msg)
-                    print ('sent to ' + msg['To'])
-                    #success = True
+                    # s.send_message(msg)
+                    print('sent to ' + msg['To'])
+                    # success = True
                 except:
                     pass
         s.send_message(msg)
         s.quit()
     except:
         print('Error: unable to send email')
-        #aiy.audio.say('Error: unable to send email')
+        # aiy.audio.say('Error: unable to send email')
     print('DONE')
+
 
 def process_event(assistant, event):
     status_ui = aiy.voicehat.get_status_ui()
