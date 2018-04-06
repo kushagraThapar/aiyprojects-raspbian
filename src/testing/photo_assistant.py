@@ -72,18 +72,18 @@ def say_ip():
 
 def take_and_upload_photo():
     print('taking a picture and uploading it')
+    f_time = datetime.datetime.now().second
+    image_id = "photo-" + str(f_time) + ".jpg"
     with picamera.PiCamera() as camera:
         camera.resolution = (1024, 768)
         camera.start_preview()
         time.sleep(2)
-        camera.capture('photo.jpg')
+        camera.capture(image_id)
 
-    upload_file('photo.jpg')
+    upload_file(image_id)
     print("Indexing this new face now")
-    f_time = datetime.datetime.now().strftime('%a %d %b @ %H %M')
-    image_id = "photo@" + f_time + ".jpg"
     index_faces(image_id)
-    results = search_faces_by_image()
+    results = search_faces_by_image(image_id)
     print("Results are")
     print(results)
 
@@ -156,7 +156,7 @@ def index_faces(image_id, attributes=(), region="us-east-2"):
         Image={
             "S3Object": {
                 "Bucket": "techday-bucket",
-                "Name": "photo.jpg",
+                "Name": image_id,
             }
         },
         CollectionId="first-collection",
@@ -166,13 +166,13 @@ def index_faces(image_id, attributes=(), region="us-east-2"):
     return response['FaceRecords']
 
 
-def search_faces_by_image(threshold=80, region="eu-west-1"):
+def search_faces_by_image(image_id, threshold=80, region="eu-west-1"):
     rekognition = boto3.client("rekognition", region)
     response = rekognition.search_faces_by_image(
         Image={
             "S3Object": {
                 "Bucket": "techday-bucket",
-                "Name": "photo.jpg",
+                "Name": image_id,
             }
         },
         CollectionId="first-collection",
