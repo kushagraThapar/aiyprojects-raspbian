@@ -73,7 +73,7 @@ def say_ip():
 def take_and_upload_photo():
     print('taking a picture and uploading it')
     f_time = datetime.datetime.now().second
-    image_id = "photo-" + f_time + ".jpg"
+    image_id = "photo-" + str(f_time) + ".jpg"
     with picamera.PiCamera() as camera:
         camera.resolution = (1024, 768)
         camera.start_preview()
