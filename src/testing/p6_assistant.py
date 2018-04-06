@@ -276,7 +276,6 @@ def process_event(assistant, event):
                     m = re.match(re_str, text.lower())
                     d = m.groupdict()
                     response = track_bus(d['route'],d['stop'])
-                    assistant.stop_conversation()
                     #print (response)
                     aiy.audio.say(response)
                 except:
@@ -285,17 +284,20 @@ def process_event(assistant, event):
                 # format:
                 # track cta train Blue Line at Jackson
                 try:
+                    print(text)
                     re_str = "track cta train (?P<route>\W+) line at (?P<stop>\W+)"
                     m = re.match(re_str, text.lower())
                     d = m.groupdict()
+                    print(d)
                     response = track_train(d['route'], d['stop'])
+                    print(response)
                     aiy.audio.say(response)
                 except:
+                    print("error")
                     aiy.audio.say("Error. Contact developer")
             else:
-                assistant.stop_conversation()
                 aiy.audio.say("Tracking not implemented yet! Come back soon.")
-            pass
+            assistant.stop_conversation()
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
