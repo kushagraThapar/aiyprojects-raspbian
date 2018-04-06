@@ -38,6 +38,10 @@ import aiy.voicehat
 from google.assistant.library.event import EventType
 import re
 
+import requests
+import xmltodict
+from dateutil import parser
+
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
@@ -48,16 +52,57 @@ def power_off_pi():
     aiy.audio.say('Good bye!')
     subprocess.call('sudo shutdown now', shell=True)
 
+def clean(txt):
+    return re.sub('\W+','',txt)
+
+with open("radio_config.csv") as f:
+    lines = f.readlines()
+radios = {}
+for line in lines:
+    arr = line.strip().split(",")
+    radios[clean(arr[0])] = arr[1]
 
 def pause_radio():
     print("pausing radio")
     subprocess.call("mpc stop", shell=True)
 
 
-def play_radio():
-    print("playing radio")
-    subprocess.call("mpc clear; mpc add http://50.31.180.202:80/;mpc play", shell=True)
+def play_radio(type):
+    addr = ''
+    if not type or len(type) == 0:
+        addr = 'http://50.31.180.202:80/'
+    else:
+        print(type)
+        type = clean(type)
+        if type in radios:
+            addr = radios[type]
+    print(addr)
+    if addr and len(addr) > 0:
+        print("playing radio")
+        subprocess.call("mpc volume 40;mpc clear; mpc add '%s';mpc play" % addr, shell=True)
+        
+def track_bus(route,stop):
+    bus_url = 'http://www.ctabustracker.com/bustime/api/v1/getpredictions'
+    bus_key = '3zENYYs55DNCGrDJEtNasqbyB'
+    result = requests.get(bus_url, params={'key':bus_key,'rt':route,'stpid':stop})
+    xml =xmltodict.parse(result.text)
+    print (xml)
+    if 'error' in xml['bustime-response']:
+        return "Sorry, Error in getting bus timings! Please try again later"
+    li = []
+    for bus in xml['bustime-response']['prd']:
+        #print(b)
+        #bus = xml['bustime-response'][b]
+        print(bus)
+        print(parser.parse(bus['prdtm']))
+        print(datetime.datetime.now())
+        diff = (parser.parse(bus['prdtm']) - datetime.datetime.now()).total_seconds() + (5*60*60)
+        print(diff)
+        li.append("Bus route %s from %s is at approximately %s in %s minutes %s seconds" % (bus['rt'],bus['stpnm'],bus['prdtm'].split(' ')[1],int(diff/60), diff%60))
+        pass
+    return '. '.join(li)
 
+#print(track_bus(7,17046))
 
 def reboot_pi():
     aiy.audio.say('See you in a bit!')
@@ -148,10 +193,25 @@ def process_event(assistant, event):
         elif text == 'ip address':
             assistant.stop_conversation()
             say_ip()
-        elif text == 'play the radio':
+        elif 'play the radio' in text or 'play radio' in text or 'start the radio' in text or 'start radio' in text:
             assistant.stop_conversation()
-            play_radio()
-        elif text in ['pause the radio', 'stop the radio']:
+            type = text.split('radio')
+            if len(type) > 1:
+                play_radio(type[1])
+            else:
+                play_radio("")
+        elif 'play' in text:
+            print('here')
+            t = clean(text.replace('play',''))
+            print(t)
+            for type in radios:
+                print(type)
+                if t == type:
+                    assistant.stop_conversation()
+                    play_radio(type)
+                    break
+            pass
+        elif text in 'pause the radio' in text or 'pause radio' in text or 'stop the radio' in text or 'stop radio' in text:
             assistant.stop_conversation()
             pause_radio()
         elif "take my picture" in text or "click my picture" in text or "take my photo" in text:
@@ -160,6 +220,26 @@ def process_event(assistant, event):
             if "at" in text:
                 phone_number = text.split("at")[1]
             take_and_send_picture(phone_number)
+        elif "track cta" in text:
+            # format:
+            # track cta bus 7 at stop 17046
+            text = text.lower()
+            print (text)
+            if 'bus' in text:
+                try:
+                    re_str = "track cta bus (?P<route>\d+) at stop (?P<stop>\d+)"
+                    m = re.match(re_str, text.lower())
+                    d = m.groupdict()
+                    response = track_bus(d['route'],d['stop'])
+                    assistant.stop_conversation()
+                    #print (response)
+                    aiy.audio.say(response)
+                except:
+                    aiy.audio.say("Error. Contact developer")                    
+            else:
+                assistant.stop_conversation()
+                aiy.audio.say("Tracking not implemented yet! Come back soon.")
+            pass
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
