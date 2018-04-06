@@ -56,7 +56,8 @@ email_mappings = {
     "jgoldrich": "Jake Goldrich",
     "zbukhari": "Zahid Bukhari",
     "jdoshier": "John Doshier",
-    "dcarvajal": "Deb Carvajal"
+    "dcarvajal": "Deb Carvajal",
+    "pkuprys": "Peter Kuprys"
 }
 
 name_mappings = {
@@ -76,7 +77,8 @@ name_mappings = {
     "Jake Goldrich": "jgoldrich@peak6.com",
     "Zahid Bukhari": "zbukhari@peak6.com",
     "John Doshier": "jdoshier@peak6.com",
-    "Deb Carvajal": "dcarvajal@peak6.com"
+    "Deb Carvajal": "dcarvajal@peak6.com",
+    "Peter Kuprys": "pkuprys@peak6.com"
 }
 
 logging.basicConfig(
