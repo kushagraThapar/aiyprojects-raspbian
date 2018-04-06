@@ -86,6 +86,12 @@ def take_and_upload_photo():
     results = search_faces_by_image(image_id)
     print("Results are")
     print(results)
+    images = set()
+    if len(results) > 0:
+        for single_result in results:
+            images.add(single_result["Face"]["ExternalImageId"])
+
+    print(str(images))
 
 
 def take_and_send_picture():
