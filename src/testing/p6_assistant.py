@@ -68,11 +68,8 @@ def say_ip():
     aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
 
 
-import re
-
-
-def take_and_send_picture(phonenumber):
-    phonenumber = re.sub('[^0-9]', '', phonenumber)
+def take_and_send_picture(phone_number):
+    # phone_number = re.sub('[^0-9]', '', phone_number)
     print('taking a picture and emailing it')
     with picamera.PiCamera() as camera:
         camera.resolution = (1024, 768)
@@ -107,13 +104,13 @@ def take_and_send_picture(phonenumber):
 
         carriers = ['messaging.sprintpcs.com', 'tmomail.net', 'txt.att.net', 'msg.fi.google.com']
         success = False
-        print('phonenumber:' + phonenumber)
-        if len(phonenumber) > 0:
+        print('phonenumber:' + phone_number)
+        if phone_number is not None and len(phone_number) > 0:
             for carrier in carriers:
                 if success:
                     break
                 try:
-                    msg['To'] = phonenumber + '@' + carrier
+                    msg['To'] = phone_number + '@' + carrier
                     # s.send_message(msg)
                     print('sent to ' + msg['To'])
                     # success = True
@@ -155,9 +152,12 @@ def process_event(assistant, event):
         elif text in ['pause the radio', 'stop the radio']:
             assistant.stop_conversation()
             pause_radio()
-        elif "send me my photo" in text:
+        elif "take my picture" in text or "click my picture" in text or "take my photo" in text:
             assistant.stop_conversation()
-            take_and_send_picture(text.split('at')[1])
+            phone_number = None
+            if "at" in text:
+                phone_number = text.split("at")[1]
+            take_and_send_picture(phone_number)
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
