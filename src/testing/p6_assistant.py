@@ -103,10 +103,10 @@ def take_and_send_picture(phone_number):
         s.send_message(msg)
         # s.sendmail(msg['From'], msg['To'], "", msg)
 
-        print('phone_number:' + phone_number)
+        print('phone_number:' + str(phone_number))
         if phone_number is not None and len(phone_number) > 0:
             carriers = ['messaging.sprintpcs.com', 'tmomail.net', 'txt.att.net', 'msg.fi.google.com']
-            
+
             for carrier in carriers:
                 try:
                     msg['To'] = phone_number + '@' + carrier
