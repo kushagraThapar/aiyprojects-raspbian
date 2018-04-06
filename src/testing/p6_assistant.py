@@ -285,15 +285,17 @@ def process_event(assistant, event):
             if 'train' in text:
                 # format:
                 # track cta train Blue Line at Jackson
-                
-                print(text)
-                re_str = "track cta train (?P<route>[0-9a-z]+) line at (?P<stop>[0-9a-z]+)"
-                m = re.match(re_str, text.lower())
-                d = m.groupdict()
-                print(d)
-                response = track_train(d['route'], d['stop'])
-                print(response)
-                aiy.audio.say(response)
+                try:
+                    print(text)
+                    re_str = "track cta train (?P<route>[0-9a-z]+) line at (?P<stop>[0-9a-z]+)"
+                    m = re.match(re_str, text.lower())
+                    d = m.groupdict()
+                    print(d)
+                    response = track_train(d['route'], d['stop'])
+                    print(response)
+                    aiy.audio.say(response)
+                except:
+                    aiy.audio.say("Error. Contact developer")
             
             else:
                 aiy.audio.say("Tracking not implemented yet! Come back soon.")
