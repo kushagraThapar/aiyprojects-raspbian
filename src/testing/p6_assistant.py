@@ -21,6 +21,39 @@ code doesn't need to record audio. Hot word detection "OK, Google" is supported.
 It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 """
 
+import requests
+import xmltodict
+from dateutil import parser
+
+with open("stops.csv") as f:
+    lines = f.readlines()
+stops = {}
+for line in lines:
+    arr = line.strip().split(",")
+    stops[arr[0]] = arr[1]
+
+def track_train(line, stop):
+    bus_url = 'http://lapi.transitchicago.com/api/1.0/ttarrivals.aspx'
+    bus_key = '0abd19c3589048e5bf85500d7c1abd8f'
+    result = requests.get(bus_url, params={'key':bus_key,'rt':route,'stpid':stop})
+    xml =xmltodict.parse(result.text)
+    print (xml)
+    if 'error' in xml['bustime-response']:
+        return "Sorry, Error in getting bus timings! Please try again later"
+    li = []
+    for bus in xml['bustime-response']['prd']:
+        #print(b)
+        #bus = xml['bustime-response'][b]
+        print(bus)
+        print(parser.parse(bus['prdtm']))
+        print(datetime.datetime.now())
+        diff = (parser.parse(bus['prdtm']) - datetime.datetime.now()).total_seconds() + (5*60*60)
+        print(diff)
+        li.append("Bus route %s from %s is at approximately %s in %s minutes %s seconds" % (bus['rt'],bus['stpnm'],bus['prdtm'].split(' ')[1],int(diff/60), diff%60))
+        pass
+    return '. '.join(li)
+    pass
+
 import logging
 import platform
 import subprocess
@@ -37,10 +70,6 @@ import aiy.audio
 import aiy.voicehat
 from google.assistant.library.event import EventType
 import re
-
-import requests
-import xmltodict
-from dateutil import parser
 
 logging.basicConfig(
     level=logging.INFO,
