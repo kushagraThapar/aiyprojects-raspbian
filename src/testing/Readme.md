@@ -13,5 +13,6 @@ Try following commands:
   
   'take my picture': takes your picture and sends email
   
-  'track cta bus 7 at stop 17046': tacks bus
-  track cta train Blue Line at Jackson
+  'track cta bus 7 at stop 17046': tracks bus
+  
+  `track cta train Blue Line at Jackson`: tracks train
