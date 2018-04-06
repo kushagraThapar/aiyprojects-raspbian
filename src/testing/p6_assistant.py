@@ -229,6 +229,7 @@ def process_event(assistant, event):
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         print('You said:', event.args['text'])
         text = event.args['text'].lower()
+        print('You said:', text)
         if text == 'power off':
             assistant.stop_conversation()
             power_off_pi()
