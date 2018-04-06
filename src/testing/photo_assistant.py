@@ -39,6 +39,44 @@ import aiy.voicehat
 from google.assistant.library.event import EventType
 import re
 
+email_mappings = {
+    "kthapar": "Kushagra Thapar",
+    "htiwari": "Harshit Tiwari",
+    "tharris": "Trevor Harris",
+    "afarquhar": "Austin Farquhar",
+    "rgarand": "Rory Garand",
+    "lquach": "Lan Quach",
+    "pjain": "Palak Jain",
+    "atirumale": "Adithya Tirumale",
+    "mvanderpluym": "Michael Vander Pluym",
+    "rkhandel": "Ramakant Khandel",
+    "lpeeler": "Luke Peeler",
+    "pwhalen": "Paul Whalen",
+    "djamrozik": "Dan Jamrozik",
+    "jgoldrich": "Jake Goldrich",
+    "zbukhari": "Zahid Bukhari",
+    "jdoshier": "John Doshier"
+}
+
+name_mappings = {
+    "Kushagra Thapar": "kthapar@peak6.com",
+    "Harshit Tiwari": "htiwari@peak6.com",
+    "Trevor Harris": "tharris@peak6.com",
+    "Austin Farquhar": "afarquhar@peak6.com",
+    "Rory Garand": "rgarand@peak6.com",
+    "Lan Quach": "lquach@peak6.com",
+    "Palak Jain": "pjain@peak6.com",
+    "Adithya Tirumale": "atirumale@peak6.com",
+    "Michael Vander Pluym": "mvanderpluym@peak6.com",
+    "Ramakant Khandel": "rkhandel@peak6.com",
+    "Luke Peeler": "lpeeler@peak6.com",
+    "Paul Whalen": "pwhalen@peak6.com",
+    "Dan Jamrozik": "djamrozik@peak6.com",
+    "Jake Goldrich": "jgoldrich@peak6.com",
+    "Zahid Bukhari": "zbukhari@peak6.com",
+    "John Doshier": "jdoshier@peak6.com"
+}
+
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
@@ -87,35 +125,35 @@ def take_and_upload_photo():
     print("Results are")
     print(results)
     images = set()
+    to_addr = None
     if len(results) > 0:
         for single_result in results:
-            images.add(single_result["Face"]["ExternalImageId"])
+            image = single_result["Face"]["ExternalImageId"]
+            if image in email_mappings:
+                aiy.audio.say("Hello " + email_mappings[image])
+                to_addr = name_mappings[email_mappings[image]]
+                images.add(image)
 
     print(str(images))
+    if to_addr is not None and len(to_addr) > 0:
+        take_and_send_picture(to_addr, image_id)
+    return to_addr
 
 
-def take_and_send_picture():
+def take_and_send_picture(to_addr, file_path):
     print('taking a picture and emailing it')
-    # aiy.audio.say('Well then smile please')
-    with picamera.PiCamera() as camera:
-        camera.resolution = (1024, 768)
-        camera.start_preview()
-        time.sleep(2)
-        camera.capture('photo.jpg')
     f_time = datetime.datetime.now().strftime('%a %d %b @ %H %M')
 
-    # TODO: Fill the to_address
-    to_address = None
     me = 'raspberrypeak6@gmail.com'
     subject = 'Tech Day photo ' + f_time
 
     msg = MIMEMultipart()
     msg['Subject'] = subject
     msg['From'] = me
-    msg['To'] = to_address
+    msg['To'] = to_addr
     msg.preamble = "Photo @ " + f_time
 
-    fp = open('photo.jpg', 'rb')
+    fp = open(file_path, 'rb')
     img = MIMEImage(fp.read())
     fp.close()
     msg.attach(img)
@@ -217,10 +255,10 @@ def process_event(assistant, event):
             pause_radio()
         elif "take my picture" in text or "click my picture" in text or "take my photo" in text:
             assistant.stop_conversation()
-            take_and_send_picture()
+            to_addr = take_and_upload_photo()
         elif "upload photo" in text:
             assistant.stop_conversation()
-            take_and_upload_photo()
+            to_addr = take_and_upload_photo()
         elif "buckets" in text:
             assistant.stop_conversation()
             list_buckets()
