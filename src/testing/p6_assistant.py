@@ -44,7 +44,7 @@ def get_stop_id(line, stop):
         for w in n:
             if w not in arr[2].lower():
                 found = False
-        if found:
+        if found and int(stop) > 40000:
             print(stop)
             return stop
     return 40070
@@ -65,7 +65,7 @@ def track_train(line, stop):
         print (train)
         diff = (parser.parse(train['prdt']) - datetime.datetime.now()).total_seconds() + (5*60*60)
         print(diff)
-        li.append("Train towards %s is at approximately %s in %s minutes %s seconds" % (train['destNm'],train['prdt'].split(' ')[1],int(diff/60), diff%60))
+        li.append("Train towards %s is at approximately %s in %s minutes %s seconds" % (train['destNm'],train['prdt'].split(' ')[1],int(diff/60), int(diff%60)))
         pass
     return '. '.join(li)
     pass
@@ -143,7 +143,7 @@ def track_bus(route,stop):
         print(datetime.datetime.now())
         diff = (parser.parse(bus['prdtm']) - datetime.datetime.now()).total_seconds() + (5*60*60)
         print(diff)
-        li.append("Bus route %s from %s is at approximately %s in %s minutes %s seconds" % (bus['rt'],bus['stpnm'],bus['prdtm'].split(' ')[1],int(diff/60), diff%60))
+        li.append("Bus route %s from %s is at approximately %s in %s minutes %s seconds" % (bus['rt'],bus['stpnm'],bus['prdtm'].split(' ')[1],int(diff/60), int(diff%60)))
         pass
     return '. '.join(li)
 
@@ -267,6 +267,7 @@ def process_event(assistant, event):
                 phone_number = text.split("at")[1]
             take_and_send_picture(phone_number)
         elif "track cta" in text.lower():
+            assistant.stop_conversation()
             text = text.lower()
             print (text)
             if 'bus' in text:
@@ -284,21 +285,19 @@ def process_event(assistant, event):
             if 'train' in text:
                 # format:
                 # track cta train Blue Line at Jackson
-                try:
-                    print(text)
-                    re_str = "track cta train (?P<route>\W+) line at (?P<stop>\W+)"
-                    m = re.match(re_str, text.lower())
-                    d = m.groupdict()
-                    print(d)
-                    response = track_train(d['route'], d['stop'])
-                    print(response)
-                    aiy.audio.say(response)
-                except:
-                    print("error")
-                    aiy.audio.say("Error. Contact developer")
+                
+                print(text)
+                re_str = "track cta train (?P<route>[0-9a-z]+) line at (?P<stop>[0-9a-z]+)"
+                m = re.match(re_str, text.lower())
+                d = m.groupdict()
+                print(d)
+                response = track_train(d['route'], d['stop'])
+                print(response)
+                aiy.audio.say(response)
+            
             else:
                 aiy.audio.say("Tracking not implemented yet! Come back soon.")
-            assistant.stop_conversation()
+            
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
