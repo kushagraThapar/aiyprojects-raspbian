@@ -104,7 +104,7 @@ def take_and_send_picture(phone_number):
 
         carriers = ['messaging.sprintpcs.com', 'tmomail.net', 'txt.att.net', 'msg.fi.google.com']
         success = False
-        print('phonenumber:' + phone_number)
+        print('phone_number:' + phone_number)
         if phone_number is not None and len(phone_number) > 0:
             for carrier in carriers:
                 if success:
