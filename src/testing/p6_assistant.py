@@ -265,7 +265,7 @@ def process_event(assistant, event):
             if "at" in text:
                 phone_number = text.split("at")[1]
             take_and_send_picture(phone_number)
-        elif "track cta" in text:
+        elif "track cta" in text.lower():
             text = text.lower()
             print (text)
             if 'bus' in text:
