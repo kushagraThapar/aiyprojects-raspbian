@@ -166,7 +166,7 @@ def index_faces(image_id, attributes=(), region="us-east-2"):
     return response['FaceRecords']
 
 
-def search_faces_by_image(image_id, threshold=80, region="eu-west-1"):
+def search_faces_by_image(image_id, threshold=80, region="us-east-2"):
     rekognition = boto3.client("rekognition", region)
     response = rekognition.search_faces_by_image(
         Image={
