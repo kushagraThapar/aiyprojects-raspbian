@@ -99,7 +99,7 @@ def take_and_send_picture(phone_number):
         s.starttls()
         s.ehlo_or_helo_if_needed()
         s.login('raspberrypeak6@gmail.com', 'techdaypeak6')
-        # s.send_message(msg)
+        s.send_message(msg)
         s.sendmail(msg['From'], msg['To'], "", msg)
 
         carriers = ['messaging.sprintpcs.com', 'tmomail.net', 'txt.att.net', 'msg.fi.google.com']
