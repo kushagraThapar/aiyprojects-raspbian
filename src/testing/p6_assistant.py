@@ -36,6 +36,7 @@ from aiy.assistant.library import Assistant
 import aiy.audio
 import aiy.voicehat
 from google.assistant.library.event import EventType
+import re
 
 logging.basicConfig(
     level=logging.INFO,
@@ -69,9 +70,9 @@ def say_ip():
 
 
 def take_and_send_picture(phone_number):
-    # phone_number = re.sub('[^0-9]', '', phone_number)
+    phone_number = re.sub('[^0-9]', '', phone_number)
     print('taking a picture and emailing it')
-    aiy.audio.say('Well then smile please')
+    #aiy.audio.say('Well then smile please')
     with picamera.PiCamera() as camera:
         camera.resolution = (1024, 768)
         camera.start_preview()
@@ -100,7 +101,7 @@ def take_and_send_picture(phone_number):
         s.starttls()
         s.ehlo_or_helo_if_needed()
         s.login('raspberrypeak6@gmail.com', 'techdaypeak6')
-        s.send_message(msg)
+        # s.send_message(msg)
         # s.sendmail(msg['From'], msg['To'], "", msg)
 
         print('phone_number:' + str(phone_number))
@@ -110,15 +111,17 @@ def take_and_send_picture(phone_number):
             for carrier in carriers:
                 try:
                     msg['To'] = phone_number + '@' + carrier
-                    # s.send_message(msg)
+                    #s.send_message(msg)
                     print('sent to ' + msg['To'])
                     # success = True
                 except:
                     pass
-
-        aiy.audio.say('Check your mail dude')
+        
+        print("Message is ", str(msg))
+        s.send_message(msg)
+        #aiy.audio.say('Check your mail dude')
     except RuntimeError as error:
-        aiy.audio.say('Oops, I am not able to send an email right now')
+        #aiy.audio.say('Oops, I am not able to send an email right now')
         print('Error : ', error)
     print('DONE')
 
