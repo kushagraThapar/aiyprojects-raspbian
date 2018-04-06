@@ -24,42 +24,59 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 import requests
 import xmltodict
 from dateutil import parser
+import datetime
+import re
 
 with open("stops.csv") as f:
     lines = f.readlines()
 stops = {}
 for line in lines:
     arr = line.strip().split(",")
-    stops[arr[0]] = arr[1]
+    stops[arr[0]] = arr
+
+def get_stop_id(line, stop):
+    n = re.split('[^a-zA-Z]', stop.lower())
+    for stop in stops:
+        arr = stops[stop]
+        if line.lower() not in arr[2].lower():
+            continue
+        found = True
+        for w in n:
+            if w not in arr[2].lower():
+                found = False
+        if found:
+            print(stop)
+            return stop
+    return 40070
+
+print(get_stop_id("red","jackson"))
 
 def track_train(line, stop):
-    bus_url = 'http://lapi.transitchicago.com/api/1.0/ttarrivals.aspx'
-    bus_key = '0abd19c3589048e5bf85500d7c1abd8f'
-    result = requests.get(bus_url, params={'key':bus_key,'rt':route,'stpid':stop})
+    stopid = get_stop_id(line, stop)
+    train_url = 'http://lapi.transitchicago.com/api/1.0/ttarrivals.aspx'
+    train_key = '0abd19c3589048e5bf85500d7c1abd8f'
+    result = requests.get(train_url, params={'key':train_key,'max':6,'mapid':stopid})
     xml =xmltodict.parse(result.text)
     print (xml)
-    if 'error' in xml['bustime-response']:
+    if 'error' in xml['ctatt']:
         return "Sorry, Error in getting bus timings! Please try again later"
     li = []
-    for bus in xml['bustime-response']['prd']:
-        #print(b)
-        #bus = xml['bustime-response'][b]
-        print(bus)
-        print(parser.parse(bus['prdtm']))
-        print(datetime.datetime.now())
-        diff = (parser.parse(bus['prdtm']) - datetime.datetime.now()).total_seconds() + (5*60*60)
+    for train in xml['ctatt']['eta']:
+        print (train)
+        diff = (parser.parse(train['prdt']) - datetime.datetime.now()).total_seconds() + (5*60*60)
         print(diff)
-        li.append("Bus route %s from %s is at approximately %s in %s minutes %s seconds" % (bus['rt'],bus['stpnm'],bus['prdtm'].split(' ')[1],int(diff/60), diff%60))
+        li.append("Train towards %s is at approximately %s in %s minutes %s seconds" % (train['destNm'],train['prdt'].split(' ')[1],int(diff/60), diff%60))
         pass
     return '. '.join(li)
     pass
+
+# print(track_train("Blue", "Jackson"))
 
 import logging
 import platform
 import subprocess
 import sys
 import time
-import datetime
 import picamera
 import smtplib
 from email.mime.image import MIMEImage
@@ -69,7 +86,6 @@ from aiy.assistant.library import Assistant
 import aiy.audio
 import aiy.voicehat
 from google.assistant.library.event import EventType
-import re
 
 logging.basicConfig(
     level=logging.INFO,
@@ -250,11 +266,11 @@ def process_event(assistant, event):
                 phone_number = text.split("at")[1]
             take_and_send_picture(phone_number)
         elif "track cta" in text:
-            # format:
-            # track cta bus 7 at stop 17046
             text = text.lower()
             print (text)
             if 'bus' in text:
+                # format:
+                # track cta bus 7 at stop 17046
                 try:
                     re_str = "track cta bus (?P<route>\d+) at stop (?P<stop>\d+)"
                     m = re.match(re_str, text.lower())
@@ -264,7 +280,18 @@ def process_event(assistant, event):
                     #print (response)
                     aiy.audio.say(response)
                 except:
-                    aiy.audio.say("Error. Contact developer")                    
+                    aiy.audio.say("Error. Contact developer")
+            if 'train' in text:
+                # format:
+                # track cta train Blue Line at Jackson
+                try:
+                    re_str = "track cta train (?P<route>\W+) line at (?P<stop>\W+)"
+                    m = re.match(re_str, text.lower())
+                    d = m.groupdict()
+                    response = track_train(d['route'], d['stop'])
+                    aiy.audio.say(response)
+                except:
+                    aiy.audio.say("Error. Contact developer")
             else:
                 assistant.stop_conversation()
                 aiy.audio.say("Tracking not implemented yet! Come back soon.")
