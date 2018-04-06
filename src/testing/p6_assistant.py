@@ -79,7 +79,7 @@ def take_and_send_picture(phone_number):
     f_time = datetime.datetime.now().strftime('%a %d %b @ %H %M')
 
     toaddr = 'kushuthapar@gmail.com'
-    me = 'picamera@peak6.net'
+    me = 'raspberrypeak6@gmail.com'
     subject = 'Photo ' + f_time
 
     msg = MIMEMultipart()
@@ -120,7 +120,6 @@ def take_and_send_picture(phone_number):
         s.quit()
     except RuntimeError as error:
         print('Error : ', error)
-        print()
         aiy.audio.say('Oops, I am not able to send an email right now')
     print('DONE')
 
