@@ -29,6 +29,7 @@ import time
 import datetime
 import picamera
 import smtplib
+import boto3
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 import aiy.assistant.auth_helpers
@@ -67,6 +68,17 @@ def reboot_pi():
 def say_ip():
     ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
     aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
+
+
+def take_and_upload_photo():
+    print('taking a picture and uploading it')
+    with picamera.PiCamera() as camera:
+        camera.resolution = (1024, 768)
+        camera.start_preview()
+        time.sleep(2)
+        camera.capture('photo.jpg')
+
+    upload_file('photo.jpg')
 
 
 def take_and_send_picture():
@@ -110,6 +122,27 @@ def take_and_send_picture():
     print('DONE')
 
 
+def list_buckets():
+    # Create an S3 client
+    s3 = boto3.client('s3')
+
+    # Call S3 to list current buckets
+    response = s3.list_buckets()
+
+    # Get a list of all bucket names from the response
+    buckets = [bucket['Name'] for bucket in response['Buckets']]
+
+    # Print out the bucket list
+    print("Bucket List: %s" % buckets)
+
+
+def upload_file(file_path):
+    # Create an S3 client
+    s3 = boto3.client('s3')
+    bucket_name = 'techday-bucket'
+    s3.upload_file(file_path, bucket_name, file_path)
+
+
 def process_event(assistant, event):
     status_ui = aiy.voicehat.get_status_ui()
     if event.type == EventType.ON_START_FINISHED:
@@ -141,6 +174,12 @@ def process_event(assistant, event):
         elif "take my picture" in text or "click my picture" in text or "take my photo" in text:
             assistant.stop_conversation()
             take_and_send_picture()
+        elif "upload photo" in text:
+            assistant.stop_conversation()
+            take_and_upload_photo()
+        elif "buckets" in text:
+            assistant.stop_conversation()
+            list_buckets()
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
